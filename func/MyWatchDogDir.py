@@ -38,7 +38,6 @@ class FileEventHandler(FileSystemEventHandler):
             if event.src_path.endswith(docx_list) and docx_name in event.src_path:
                 print("file created:{0}".format(event.src_path))
                 t = self.__filecheck(dpath)
-            # print("file modified:{0}".format(event.src_path))
 
     def on_deleted(self, event):
         if event.is_directory:

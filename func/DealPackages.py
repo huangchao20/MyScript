@@ -11,6 +11,28 @@ class DealPack:
     def __init__(self, dpath):
         self.dpath = dpath
 
+    def GetShName(self, str1, filename, docxname, xqdir):
+        """
+        :param str1: sbin脚本添加的内容
+        :param filename: docx的绝对路径文件名
+        :param docxname:docx的文件名
+        :param xqdir:XQ号
+        :return:
+        """
+        tli = str1.split(" ")
+        for name in tli:
+            if name.endswith('.sh'):
+                shname = filename.replace(docxname, name)
+                t = str1.split(' ')
+                for s in t:
+                    if 'pybak' in s:
+                        mkdirs = "/".join((xqdir, s))
+                        print('shname:[%s]------------>>mkdirs:[%s]' % (shname, mkdirs))
+                    else:
+                        mkdirs = " ".join((xqdir, s))
+        #shname格式：'E:\SVN\2019\20190110w\特色业务平台\t6\fbap.20190110rw.t6\XQ-2018-801\TS_77044_AFA_20100117_pybak.sh'
+        return shname, mkdirs
+
     def __dealDocxFile(self, filename):
         """
          :function:word文档处理
@@ -23,13 +45,13 @@ class DealPack:
             listdir = filename.split('\\')
             listdir.pop()
             if listdir[-1].startswith(sfile):
-                listdir.pop()
+                xqdir = listdir.pop()
             # 组建路径‘F:\\TFS_l\\文档&DB&AFEjar包\\WEEK\\2019\\20190117’
             mkpth = '\\'.join((listdir[0], ""))
             for p in listdir[1:]:
                 print(p)
                 mkpth = os.path.join(mkpth, p)
-            print('sbin的目录是[%s]' % mkpth)
+            print('sbin的目录是[%s], XQ号的名称是:[%s]' % (mkpth, xqdir))
             print(filename)
             file = docx.Document(filename)
             # 处理docx文档中的表格，处理cfg文件
@@ -41,7 +63,6 @@ class DealPack:
                     if "PORT" in result:
                         print(result)
                 mk = Mkdirs(mkpth, result)
-                mk.mkNewFile()
 
             print("段落数: ", str(len(file.paragraphs)))
             # 输出段落编号及段落内容
@@ -53,8 +74,17 @@ class DealPack:
                 re.findall(r'\w{2} \w{2}_\d{5}_\w{4}_\w{2}_\d{8}.sh', file.paragraphs[i].text)        #匹配bsmsDB
                 """
                 # 检查安装手册里面的文档是否存在
-                if file.paragraphs[i].text.endswith('.sh'):
-                    t =  file.paragraphs[i].text.split(' ')
+                if "mkdir" in file.paragraphs[i].text:  # 拼接afa、afe的sh脚本
+                    print('>>>>>>>>>>>>>>>>>>>开始拼接afa、afe脚本<<<<<<<<<<<<<<<<<<<<')
+                    mkdirs = file.paragraphs[i].text
+                    if "inst1" in mkdirs:
+                        print('afa:[%s]' % mkdirs)
+                    else:
+                        print('afe:[%s]' % mkdirs)
+                    mk = Mkdirs(mkpth, mkdirs)
+                elif file.paragraphs[i].text.endswith('.sh'):
+                    print('>>>>>>>>>>>>>>>>>>>>开始处理脚本[%s]<<<<<<<<<<<<<<<<<<<<<<<<' % file.paragraphs[i].text)
+                    t = file.paragraphs[i].text.split(' ')
                     for n in range(len(t)):
                         if t[n].endswith('.sh'):
                             rename = t[n]
@@ -66,30 +96,30 @@ class DealPack:
                         print("安装手册[%s]中的文件[%s]不存在" % (filename, nfilename))
                         return None
                     else:  # 拼接sbin下面所有的sh、add文件
-                        if re.findall(r'\w{2} \w{2}_\d{5}_X_\d{8}.\w{2}', file.paragraphs[i].text):
-                            print('【************bsmsDB开始处理：[%s]************】' %file.paragraphs[i].text)
-                            print('fbapdb:[%s]' % file.paragraphs[i].text)
+                        print(file.paragraphs[i].text)
+                        if re.findall(r'\w{2} \w{2}_\d{5}_\w_\d{8}.\w{2}', file.paragraphs[i].text):
+                            print('【************fbapDB开始处理：[%s]************】' %file.paragraphs[i].text)
+                            # tli = file.paragraphs[i].text.split(" ")
+                            # for name in tli:
+                            #     if name.endswith('.sh'):
+                            #         shname = filename.replace(f, name)
+                            #         t = file.paragraphs[i].text.split(' ')
+                            #         for s in t:
+                            #             if s.endswith('.sh'):
+                            #                 mkdirs = " ".join((xqdir, s))
+                            #                 print('shname:[%s]------------>>mkdirs:[%s]' % (shname, mkdirs))
+                            shname, mkdirs = self.GetShName(file.paragraphs[i].text, filename, f, xqdir)
                         elif re.findall(r'\w{2} \w{2}_\d{5}_\w{4}_\w{2}_\d{8}.sh', file.paragraphs[i].text):
-                            print('【************fbapDB开始处理：[%s]************】' % file.paragraphs[i].text)
+                            print('【************bsmsDB开始处理：[%s]************】' % file.paragraphs[i].text)
                             print('bsmsdb:[%s]' % file.paragraphs[i].text)
-                            tli = file.paragraphs[i].text.split(" ")
-                            for name in tli:
-                                if name.endswith('.sh'):
-                                    shname = filename.replace(f, name)
-                                    print('【***************shname[%s]**************】' % shname)
-                                    cs = CheckSql(shname)
-
+                            # mkdirs = " ".join((xqdir, file.paragraphs[i].text))
+                            shname, mkdirs = self.GetShName(file.paragraphs[i].text, filename, f, xqdir)
                         elif re.findall(r'\w{2} \w{2}_\d{5}_\w{3}_\d{8}_pybak.sh', file.paragraphs[i].text):
                             print('【************pybak开始处理：[%s]************】' % file.paragraphs[i].text)
-                            print('pybak:[%s]' % file.paragraphs[i].text)
-                        elif "mkdir" in file.paragraphs[i].text:  # 拼接afa、afe的sh脚本
-                            mkdirs = file.paragraphs[i].text
-                            if "inst1" in mkdirs:
-                                print('afa:[%s]' % mkdirs)
-                            else:
-                                print('afe:[%s]' % mkdirs)
-                            mk = Mkdirs(mkpth, mkdirs)
-                            mk.mkNewFile()
+                            # mkdirs = '/'.join((xqdir, file.paragraphs[i].text))
+                            Mkdirs(mkpth, mkdirs)
+                            shname, mkdirs = self.GetShName(file.paragraphs[i].text, filename, f, xqdir)
+                        CheckSql(shname, mkpth, mkdirs)
 
     def TextFile(self):
         dlist = self.dpath.split('\\')
@@ -108,3 +138,8 @@ class DealPack:
                 doc.SaveAs(newfile)
                 self.__dealDocxFile(newfile)
         return '000000'
+
+if __name__ == '__main__':
+    dpath = 'F:\\黄小宝的宝\\测试目录\\fbap.20190110rw.t6\\XQ-2018-801\\TS_75994_安装操作部署手册.docx'
+    t = DealPack(dpath)
+    t.TextFile()
