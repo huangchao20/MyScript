@@ -7,8 +7,6 @@ from DealPackages import DealPack
 """
 监测文件夹、文件是否有变化
 """
-
-
 class FileEventHandler(FileSystemEventHandler):
     def __init__(self):
         FileSystemEventHandler.__init__(self)

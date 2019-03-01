@@ -89,11 +89,10 @@ class Mkdirs:
             elif re.findall(r'\w{2} \w{2}_\d{5}_\w{4}_\w{2}_\d{8}.sh', self.mkdirs):
                 print('--------------------->>开始处理bsmsDB命令:[%s]<<-----------------------' % self.mkdirs)
                 filename = self.bsms
-            else:
+            elif 'pybak' in self.mkdirs or "pyback" in self.mkdirs:
                 print('-------------------->>开始处理【%s】<<----------------------' % self.mkdirs)
                 filename = self.pybak
             shn = self.tmp(self.templateDir, sbinpath, filename)
-            print('-------------->sh脚本的名字是：[%s]<---------------' % shn)
             return '000000'
         else:
             print('请确认[%s] 是否有效' % self.mkdirs)

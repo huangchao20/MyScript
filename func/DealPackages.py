@@ -22,6 +22,7 @@ class DealPack:
         tli = str1.split(" ")
         for name in tli:
             if name.endswith('.sh'):
+                print('------------------------------>filename:[%s]------->docxname:[%s]------>name:[%s]' % (filename, docxname, name))
                 shname = filename.replace(docxname, name)
                 t = str1.split(' ')
                 for s in t:
@@ -29,7 +30,8 @@ class DealPack:
                         mkdirs = "/".join((xqdir, s))
                         print('shname:[%s]------------>>mkdirs:[%s]' % (shname, mkdirs))
                     else:
-                        mkdirs = " ".join((xqdir, s))
+                        s = " ".join((xqdir, s))
+                        mkdirs = ' '.join(('install ', s))
         #shname格式：'E:\SVN\2019\20190110w\特色业务平台\t6\fbap.20190110rw.t6\XQ-2018-801\TS_77044_AFA_20100117_pybak.sh'
         return shname, mkdirs
 
@@ -97,29 +99,22 @@ class DealPack:
                         return None
                     else:  # 拼接sbin下面所有的sh、add文件
                         print(file.paragraphs[i].text)
-                        if re.findall(r'\w{2} \w{2}_\d{5}_\w_\d{8}.\w{2}', file.paragraphs[i].text):
+                        if re.findall(r'\w{2} \w{2}_\d{5}_\w_\d{8}.\w{2}', file.paragraphs[i].text)\
+                                or re.findall(r'\w{2}_\d{5}_\w_\d{8}.\w{2}', file.paragraphs[i].text):
                             print('【************fbapDB开始处理：[%s]************】' %file.paragraphs[i].text)
-                            # tli = file.paragraphs[i].text.split(" ")
-                            # for name in tli:
-                            #     if name.endswith('.sh'):
-                            #         shname = filename.replace(f, name)
-                            #         t = file.paragraphs[i].text.split(' ')
-                            #         for s in t:
-                            #             if s.endswith('.sh'):
-                            #                 mkdirs = " ".join((xqdir, s))
-                            #                 print('shname:[%s]------------>>mkdirs:[%s]' % (shname, mkdirs))
-                            shname, mkdirs = self.GetShName(file.paragraphs[i].text, filename, f, xqdir)
-                        elif re.findall(r'\w{2} \w{2}_\d{5}_\w{4}_\w{2}_\d{8}.sh', file.paragraphs[i].text):
+                            shn, mkdirs = self.GetShName(file.paragraphs[i].text, filename, f, xqdir)
+                        elif re.findall(r'\w{2} \w{2}_\d{5}_\w{4}_\w{2}_\d{8}.sh', file.paragraphs[i].text)\
+                                or re.findall(r'sh \w{2} \w{2}_\d{5}_\w{4}_\w{2}_\d{8}.sh', file.paragraphs[i].text):
                             print('【************bsmsDB开始处理：[%s]************】' % file.paragraphs[i].text)
                             print('bsmsdb:[%s]' % file.paragraphs[i].text)
-                            # mkdirs = " ".join((xqdir, file.paragraphs[i].text))
-                            shname, mkdirs = self.GetShName(file.paragraphs[i].text, filename, f, xqdir)
-                        elif re.findall(r'\w{2} \w{2}_\d{5}_\w{3}_\d{8}_pybak.sh', file.paragraphs[i].text):
+                            shn, mkdirs = self.GetShName(file.paragraphs[i].text, filename, f, xqdir)
+                        elif re.findall(r'\w{2} \w{2}_\d{5}_\w{3}_\d{8}_pybak.sh', file.paragraphs[i].text)\
+                            or re.findall(r'\w{2} \w{2}_\d{5}_\w{3}_\d{8}_pyback.sh', file.paragraphs[i].text):
                             print('【************pybak开始处理：[%s]************】' % file.paragraphs[i].text)
                             # mkdirs = '/'.join((xqdir, file.paragraphs[i].text))
+                            shn, mkdirs = self.GetShName(file.paragraphs[i].text, filename, f, xqdir)
                             Mkdirs(mkpth, mkdirs)
-                            shname, mkdirs = self.GetShName(file.paragraphs[i].text, filename, f, xqdir)
-                        CheckSql(shname, mkpth, mkdirs)
+                        CheckSql(shn, mkpth, mkdirs)
 
     def TextFile(self):
         dlist = self.dpath.split('\\')

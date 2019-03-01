@@ -16,12 +16,11 @@ class CheckSql:
         self.pybaksh = '6.afa_workspace_pybak.sh'
         self.fbap = '51.db2_insert_fbap_auto.sh'#fbapDB
         self.bsms = '52.db2_insert_bsms.sh'     #bsmsDB
-
         self.pybak = 'pybak'
         self.dpath = dpath
         self.delete = "delete"
         self.Del = 'del'
-        self.sbindir = sbindir
+        self.sbindir = os.path.join(sbindir, 'sbin')
         self.shstr = shstr
         self.TransFunc()
 
@@ -48,12 +47,15 @@ class CheckSql:
             lpath = os.path.join(lpath, shdirs[i])
         sbindir = os.path.join(lpath, 'sbin')
         print('lpath----->>[%s];sbindir---->>[%s]' % (lpath, shdirs))
+        print('----------------------------------------------------------->shname:[%s]' % shname)
         if re.findall(r'\w{2}_\d{5}_\w_\d{8}.\w{2}', shname):
             filename = os.path.join(sbindir, '8.AMICInit.sh')
             print('filename:[%s]' % filename)
+        elif re.findall(r'\w{2}_\d{5}_\w{3}_\d{8}_\w{5,6}.sh', shname):
+            filename = os.path.join(sbindir, '6.afa_workspace_pybak.sh')
         return lpath, fdir, shname, filename
 
-    def __SpliceSh(self):
+    def __SpliceShOld(self):
         """
         filename, lpath, fdir, shname
         name:__SpliceSh
@@ -96,10 +98,8 @@ class CheckSql:
         :return:
         """
         print('处理代码备份脚本[%s]------->>[%s]' % (self.sbindir, self.shstr))
-        print('尼玛， 老子还没有开始呢')
         bak = 'bak'
         filename = os.path.join(self.sbindir, self.pybaksh)
-        print('-------------------->filename:[%s]' % filename)
         if os.path.isfile(filename):
             with open(filename) as f:
                 testl = []
@@ -125,6 +125,26 @@ class CheckSql:
         else:
             raise EOFError("请确认filename:[%s]是否存在" % filename)
 
+    def __SpliceSh(self, filename):
+        flag = True
+        f1 = filename.split('\\')[-1]
+        nfilename = filename.replace(f1, '222222222')
+        with open(nfilename, 'w') as f:
+            with open(filename, 'r') as fs:
+                for fr in fs.readlines():
+                    if 'startflag' in fr:
+                        f.write(self.shstr)
+                        f.write('\n')
+                    elif 'install' in fr and fr.endswith('.sh\n') and flag == True:
+                        f.write(fr)
+                        f.write(self.shstr)
+                        flag == False
+                        f.write('\n')
+                    else:
+                        f.write(fr)
+        os.remove(filename)
+        os.rename(nfilename, filename)
+
     def __FindSbin(self):
 
         """
@@ -132,10 +152,6 @@ class CheckSql:
         function:查找sbin目录是否存在，如果不存在，则创建目录，并添加sh脚本
         """
         lpath, fdir, shname, filename = self.__spliceDir()
-        print('lpath-------->%s' % lpath)
-        print('fdir------->%s' % fdir)
-        print('shname------>%s' % shname)
-        print('filename------>%s' % filename)
         templateDir = "F:\\黄小宝的宝\\script\\sbin"         #sbin模板的路径
         print("***********开始查找[%s]下是否存在sbin目录***********" % lpath)
         sbin = "sbin"
@@ -148,27 +164,11 @@ class CheckSql:
             #检查8.AMICInit.sh脚本是否存在,如果不存在，则将文件拷贝过来
             if "8.AMICInit.sh" not in os.listdir(sbindir):
                 copyfile(os.path.join(templateDir, "8.AMICInit.sh"), os.path.join(sbindir, "8.AMICInit.sh"))
-
             """判断shname安装手册是否提示部署"""
             """此处调用函数判断"""
-            # with open(shname, 'r') as f:
-            #     for dd in f:
-            #         if ".sql" in dd:
-            #             #从"db2 -tvf ./TS_75760_FBAP_D_20190117_01.sql|tee -a $LOGSNAME"切割出.sql文件名
-            #             sqlfile = dd.split("./")[1].split("|")[0]
-            #             print(sqlfile)
-            #             """判断sqlfile是否存在"""
-            #             if sqlfile not in os.listdir(os.getcwd()):
-            #                 raise EOFError("[%s]调用的[%s]不存在，请确认" % (shname, sqlfile))
-            #             else:   #检查部署的sql文件中是否包含delete语句
-            #                 with open(sqlfile) as fsql:
-            #                     for tmp in fsql:
-            #                         if self.Del in tmp or self.Del.upper() in tmp:
-            #                             raise EOFError("部署的[%s]文件中包含delete语句，请开发人员确认" % sqlfile)
             sbinShName = "51.db2_insert_fbap_auto.sh"
-        elif "pybak" in shname:
+        elif "pybak" in shname or 'pyback' in shname:
             sbinShName = "6.afa_workspace_pybak.sh"
-
         t = os.path.join(templateDir, sbinShName)
         filename = os.path.join(os.path.join(lpath, sbin), sbinShName)
         if os.path.isfile(t) and sbinShName not in os.listdir(os.path.join(lpath, sbin)):
@@ -176,7 +176,8 @@ class CheckSql:
             #查找需要被拼接的脚本
             # 开始拼接sh脚本
         print('>>>>>>>>>>>>>>>>开始调用__SpliceSh函数<<<<<<<<<<<<<<<<<<<')
-        self.__SpliceSh()
+        filename = os.path.join(self.sbindir, sbinShName)
+        self.__SpliceSh(filename)
 
     def FindSh(self):
         print("**************开始检查sh脚本【%s】**************" % self.dpath)
