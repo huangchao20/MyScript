@@ -5,6 +5,11 @@ from app.Mkdirs import Mkdirs
 
 class CheckSql:
     def __init__(self, dpath, sbindir, shstr):
+        print('++++++++++++++++++++++++++++++++++++++++++++')
+        print(dpath)
+        print(sbindir)
+        print(shstr)
+        print('+++++++++++++++++++++++++++++++++++++++++++')
         """
         :dpath:被校验的sh脚本名称
         :shname:sbin目录
@@ -29,7 +34,7 @@ class CheckSql:
         描述：根据self.dpath的不太，调用不同的处理函数
         :return:
         """
-        if self.pybak in self.dpath:
+        if self.pybak in self.dpath or 'pyback' in self.dpath:
             self.__PyBak()
         else:
             ret = self.FindSh()
@@ -138,7 +143,7 @@ class CheckSql:
                     elif 'install' in fr and fr.endswith('.sh\n') and flag == True:
                         f.write(fr)
                         f.write(self.shstr)
-                        flag == False
+                        flag = False
                         f.write('\n')
                     else:
                         f.write(fr)

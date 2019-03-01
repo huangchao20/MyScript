@@ -22,13 +22,11 @@ class DealPack:
         tli = str1.split(" ")
         for name in tli:
             if name.endswith('.sh'):
-                print('------------------------------>filename:[%s]------->docxname:[%s]------>name:[%s]' % (filename, docxname, name))
                 shname = filename.replace(docxname, name)
                 t = str1.split(' ')
                 for s in t:
-                    if 'pybak' in s:
+                    if 'pybak' in s or 'pyback' in s:
                         mkdirs = "/".join((xqdir, s))
-                        print('shname:[%s]------------>>mkdirs:[%s]' % (shname, mkdirs))
                     else:
                         s = " ".join((xqdir, s))
                         mkdirs = ' '.join(('install ', s))
@@ -76,17 +74,19 @@ class DealPack:
                 re.findall(r'\w{2} \w{2}_\d{5}_\w{4}_\w{2}_\d{8}.sh', file.paragraphs[i].text)        #匹配bsmsDB
                 """
                 # 检查安装手册里面的文档是否存在
-                if "mkdir" in file.paragraphs[i].text:  # 拼接afa、afe的sh脚本
+                fp = file.paragraphs[i].text.replace('\t', '')
+                fp.rstrip()
+                if "mkdir" in fp:  # 拼接afa、afe的sh脚本
                     print('>>>>>>>>>>>>>>>>>>>开始拼接afa、afe脚本<<<<<<<<<<<<<<<<<<<<')
-                    mkdirs = file.paragraphs[i].text
+                    mkdirs = fp
                     if "inst1" in mkdirs:
                         print('afa:[%s]' % mkdirs)
                     else:
                         print('afe:[%s]' % mkdirs)
                     mk = Mkdirs(mkpth, mkdirs)
-                elif file.paragraphs[i].text.endswith('.sh'):
-                    print('>>>>>>>>>>>>>>>>>>>>开始处理脚本[%s]<<<<<<<<<<<<<<<<<<<<<<<<' % file.paragraphs[i].text)
-                    t = file.paragraphs[i].text.split(' ')
+                elif fp.endswith('.sh'):
+                    print('>>>>>>>>>>>>>>>>>>>>开始处理脚本[%s]<<<<<<<<<<<<<<<<<<<<<' % fp)
+                    t = fp.split(' ')
                     for n in range(len(t)):
                         if t[n].endswith('.sh'):
                             rename = t[n]
@@ -98,22 +98,25 @@ class DealPack:
                         print("安装手册[%s]中的文件[%s]不存在" % (filename, nfilename))
                         return None
                     else:  # 拼接sbin下面所有的sh、add文件
-                        print(file.paragraphs[i].text)
-                        if re.findall(r'\w{2} \w{2}_\d{5}_\w_\d{8}.\w{2}', file.paragraphs[i].text)\
-                                or re.findall(r'\w{2}_\d{5}_\w_\d{8}.\w{2}', file.paragraphs[i].text):
-                            print('【************fbapDB开始处理：[%s]************】' %file.paragraphs[i].text)
-                            shn, mkdirs = self.GetShName(file.paragraphs[i].text, filename, f, xqdir)
-                        elif re.findall(r'\w{2} \w{2}_\d{5}_\w{4}_\w{2}_\d{8}.sh', file.paragraphs[i].text)\
-                                or re.findall(r'sh \w{2} \w{2}_\d{5}_\w{4}_\w{2}_\d{8}.sh', file.paragraphs[i].text):
-                            print('【************bsmsDB开始处理：[%s]************】' % file.paragraphs[i].text)
+                        if ".sh" in fp:
+                            for s in fp.split(' '):
+                                if s.endswith('.sh'):
+                                    shs = s
+                        if re.findall(r'\w{2}_\d{5}_\w_\d{8}.\w{2}', shs):
+                            print('【************fbapDB开始处理：[%s]************】' %fp)
+                            shn, mkdirs = self.GetShName(fp, filename, f, xqdir)
+                        elif re.findall(r'\w{2}_\d{5}_\w{4}_\w{2}_\d{8}.sh', shs):
+                            print('【************bsmsDB开始处理：[%s]************】' % fp)
                             print('bsmsdb:[%s]' % file.paragraphs[i].text)
-                            shn, mkdirs = self.GetShName(file.paragraphs[i].text, filename, f, xqdir)
-                        elif re.findall(r'\w{2} \w{2}_\d{5}_\w{3}_\d{8}_pybak.sh', file.paragraphs[i].text)\
-                            or re.findall(r'\w{2} \w{2}_\d{5}_\w{3}_\d{8}_pyback.sh', file.paragraphs[i].text):
-                            print('【************pybak开始处理：[%s]************】' % file.paragraphs[i].text)
+                            shn, mkdirs = self.GetShName(fp, filename, f, xqdir)
+                        elif re.findall(r'\w{2}_\d{5}_\w{3}_\d{8}_\w{5,6}.sh', shs):
+                            print('【************pybak开始处理：[%s]************】' % fp)
                             # mkdirs = '/'.join((xqdir, file.paragraphs[i].text))
-                            shn, mkdirs = self.GetShName(file.paragraphs[i].text, filename, f, xqdir)
+                            shn, mkdirs = self.GetShName(fp, filename, f, xqdir)
                             Mkdirs(mkpth, mkdirs)
+                        else:
+                            continue
+                        print(shn)
                         CheckSql(shn, mkpth, mkdirs)
 
     def TextFile(self):

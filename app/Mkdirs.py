@@ -82,17 +82,20 @@ class Mkdirs:
                 f.write(self.mkdirs)
             return '000000'
         elif Mkdirs.sh in self.mkdirs:
-            print('开始处理执行脚本命令：【%s】' % self.mkdirs)
-            if re.findall(r'\w{2}_\d{5}_\w_\d{8}.\w{2}', self.mkdirs):
-                print('--------------------->>开始处理fbapDB命令:[%s]<<-----------------------' % self.mkdirs)
-                filename = self.fbap
-            elif re.findall(r'\w{2} \w{2}_\d{5}_\w{4}_\w{2}_\d{8}.sh', self.mkdirs):
-                print('--------------------->>开始处理bsmsDB命令:[%s]<<-----------------------' % self.mkdirs)
-                filename = self.bsms
-            elif 'pybak' in self.mkdirs or "pyback" in self.mkdirs:
-                print('-------------------->>开始处理【%s】<<----------------------' % self.mkdirs)
-                filename = self.pybak
-            shn = self.tmp(self.templateDir, sbinpath, filename)
-            return '000000'
+            try:
+                print('开始处理执行脚本命令：【%s】' % self.mkdirs)
+                if re.findall(r'\w{2}_\d{5}_\w_\d{8}.\w{2}', self.mkdirs):
+                    print('--------------------->>开始处理fbapDB命令:[%s]<<-----------------------' % self.mkdirs)
+                    filename = self.fbap
+                elif re.findall(r'\w{2} \w{2}_\d{5}_\w{4}_\w{2}_\d{8}.sh', self.mkdirs):
+                    print('--------------------->>开始处理bsmsDB命令:[%s]<<-----------------------' % self.mkdirs)
+                    filename = self.bsms
+                elif 'pybak' in self.mkdirs or "pyback" in self.mkdirs:
+                    print('-------------------->>开始处理【%s】<<----------------------' % self.mkdirs)
+                    filename = self.pybak
+                shn = self.tmp(self.templateDir, sbinpath, filename)
+                return '000000'
+            except Exception as e:
+                print(e)
         else:
             print('请确认[%s] 是否有效' % self.mkdirs)

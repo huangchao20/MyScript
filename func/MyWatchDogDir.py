@@ -12,7 +12,6 @@ class FileEventHandler(FileSystemEventHandler):
         FileSystemEventHandler.__init__(self)
 
     def __filecheck(self, dpath):
-        print("----------------------------------------------------------------", dpath)
         dp = DealPack(dpath)
         # print(dp.TextFile())
         ret = dp.TextFile()
